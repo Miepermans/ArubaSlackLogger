@@ -1,0 +1,17 @@
+// ArubaSlackLogger Syslog-NG Example
+
+// First make sure we have a source
+source s_net { udp(ip(0.0.0.0) port(514)); };
+
+// Define a destination
+destination d_php_arubaslacklogger { program("/usr/bin/php -f $YOURPATH$/arubaslacklogger.php" template("${MSG}\n") ); };
+
+// At this moment we only use some of the syslog beeing sent by Aruba Accesspoints.
+// We can create a filter to reduce logging. If you have multiple devices, you can restrict a netmask.
+filter f_arubasource {
+        netmask("192.168.0.0.0/255.255.255.0");
+        and (match("name updated to" value("MESSAGE")) or match("receive station msg" value("MESSAGE")));
+};
+
+// And finally, we define a log rule which links everything together
+log { source(s_net); filter(f_arubasource); destination(d_php_arubaslacklogger); };
